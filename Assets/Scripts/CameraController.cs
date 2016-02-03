@@ -1,10 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class CameraController : MonoBehaviour {
-
+public class CameraController : MonoBehaviour
+{
     public GameObject player;
-
     private Vector3 offset;
 
     void Start()
@@ -12,25 +11,62 @@ public class CameraController : MonoBehaviour {
         offset = transform.position - player.transform.position;
     }
 
+    void Update()
+    {
+        SwipeDirection dir = checkHorizontalSwipes();
+        if (dir == SwipeDirection.Left)
+        {
+            transform.RotateAround(player.transform.position, new Vector3(0f,1f,0f), 45);
+        }
+        else if (dir == SwipeDirection.Right)
+        {
+            transform.RotateAround(player.transform.position, new Vector3(0f, 1f, 0f), -45);        
+        }
+    }
+
     void LateUpdate()
     {
         transform.position = player.transform.position + offset;
-        OrbitAround();
     }
 
-    void OrbitAround()
+    public float minSwipeDist, maxSwipeTime;
+    private Vector2 startPos;
+    private float swipeStartTime;
+    private bool couldBeSwipe;
+
+    private enum SwipeDirection
     {
-        Vector2 screenCenter = new Vector2(Screen.width / 2, Screen.height / 2);
-        Vector2 firstVector = lastFramePos - screenCenter;
-        Vector2 convertedMouseInput = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
-        Vector2 secondVector = convertedMouseInput - screenCenter;
-        float angle = Vector2.Angle(firstVector, secondVector);
-        Vector3 cross = Vector3.Cross(firstVector, secondVector);
-        if (cross.z < 0)
+        None,
+        Left,
+        Right
+    }
+
+    SwipeDirection checkHorizontalSwipes()
+    {
+        if (Input.touches.Length == 0)
+            return SwipeDirection.None;
+
+        Touch touch = Input.touches[0];
+
+        if (touch.phase == TouchPhase.Began)
         {
-            angle = -angle;
+            couldBeSwipe = true;
+            startPos = touch.position;
+            swipeStartTime = Time.time; 
         }
-        var rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y + angle, 0);
-        transform.rotation = rotation;
+        else if(touch.phase == TouchPhase.Stationary)
+        {
+            couldBeSwipe = false;
+        }
+        float swipeTime = Time.time - swipeStartTime;
+        float swipeDist = Mathf.Abs(touch.position.x - startPos.x);
+
+        if (couldBeSwipe && swipeTime < maxSwipeTime && swipeDist > minSwipeDist)
+        {
+            couldBeSwipe = false;
+            return (touch.position.x - startPos.x >= 0f) ? SwipeDirection.Right : SwipeDirection.Left;
+        }
+
+        return SwipeDirection.None;
     }
 }

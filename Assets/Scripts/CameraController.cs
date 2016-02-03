@@ -17,10 +17,12 @@ public class CameraController : MonoBehaviour
         if (dir == SwipeDirection.Left)
         {
             transform.RotateAround(player.transform.position, new Vector3(0f,1f,0f), 45);
+            offset = transform.position - player.transform.position;
         }
         else if (dir == SwipeDirection.Right)
         {
-            transform.RotateAround(player.transform.position, new Vector3(0f, 1f, 0f), -45);        
+            transform.RotateAround(player.transform.position, new Vector3(0f, 1f, 0f), -45);
+            offset = transform.position - player.transform.position;
         }
     }
 

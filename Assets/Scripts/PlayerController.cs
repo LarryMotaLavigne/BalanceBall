@@ -4,10 +4,13 @@ using System.Collections;
 
 public class PlayerController : MonoBehaviour {
     public float speed;
+    public float jumpSpeed;
+    public float gravity;
     public Text text;
 
     private Rigidbody rb;
 
+    private Vector3 moveDirection = Vector3.zero;
 
     // The initials orientation
     private int initialOrientationX;
@@ -23,22 +26,26 @@ public class PlayerController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void FixedUpdate () {
-        float moveVertical;
-        float moveHorizontal;
+        
         if (Application.platform == RuntimePlatform.Android)
         {
-            moveHorizontal = 3*Input.acceleration.x;
-            moveVertical = 3*Mathf.Clamp(-Input.acceleration.z - 0.6f,-1.0f,1.0f);
+            moveDirection.x = 3 * Input.acceleration.x;
+            moveDirection.z = 3 * Mathf.Clamp(-Input.acceleration.z - 0.6f, -1.0f, 1.0f);
         }
         else
         {
-            moveHorizontal = Input.GetAxis("Horizontal");
-            moveVertical = Input.GetAxis("Vertical");
+            moveDirection.x = Input.GetAxis("Horizontal");
+            moveDirection.z = Input.GetAxis("Vertical");
         }
 
-        Vector3 movement = new Vector3(moveHorizontal, 0.0f, moveVertical);
-        text.text = "(Horizontal :"+moveHorizontal+", Vertical : "+moveVertical+")";
-        rb.AddForce(movement * speed);
+        // Jump
+        if (Input.GetButton("Jump") && rb.transform.position.y <= 0.5)
+        {
+            rb.AddForce(new Vector3(0.0f, jumpSpeed,0.0f));
+        }
+            
+        text.text = "(Horizontal :"+moveDirection.x+", Vertical : "+moveDirection.z+")";
+        rb.AddForce(moveDirection * speed);
     }
 
     void OnTriggerEnter(Collider other)
